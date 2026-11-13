@@ -1,47 +1,67 @@
-# Day 06 · Data Ingestion Engineering
+# Day 06 — Data Ingestion Engineering
 
-**Lab cá nhân** · **4 giờ** · **Dữ liệu tự chọn**
+Pipeline retrieval cho bản scan 39 trang của **Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân**. Bài dùng OCR có truy vết trang, embedding local đa ngữ, PostgreSQL + pgvector và benchmark ba chiến lược A/B/C.
 
-Biến tài liệu thành kho tri thức có thể truy xuất cho AI agent, rồi đo xem cách chuẩn bị dữ liệu nào hiệu quả nhất.
+## Kết quả đã chạy
 
-| 📄 Dữ liệu | 🧩 Chiến lược | 🎯 Benchmark |
-|---|---|---|
-| Tối thiểu **30 trang nội dung** | Tối thiểu **3 cấu hình** | Tối thiểu **20 câu hỏi** |
+| Strategy | Chunking / filter | Dev Hit@1 | Dev Hit@3 | Test Hit@1 | Test Hit@3 |
+|---|---|---:|---:|---:|---:|
+| A | fixed 500 ký tự, overlap 50 | 2/15 | 6/15 | 1/5 | 2/5 |
+| B | theo đoạn, tối đa 900, không filter | 9/15 | 12/15 | 2/5 | 3/5 |
+| C | giống B, thêm filter `section` khi có | 9/15 | 12/15 | 3/5 | 5/5 |
 
-## Bắt đầu nhanh
+Quy tắc chốt trước chọn **B trên dev**; B và C hòa trên dev nên B thắng tie theo thứ tự cấu hình cố định. C đạt 5/5 Hit@3 trên test là kết quả mô tả sau khi mở holdout, không được dùng để tinh chỉnh lại lựa chọn.
 
-Dùng [starter PostgreSQL + pgvector](starter/README.md) để dựng database và hoàn thiện các hàm TODO, hoặc tự chọn vector store tương đương. Starter chỉ là khung: **bạn tự hiện thực pipeline và benchmark**.
+## Thành phần
 
-## 1. Xây pipeline
+- Corpus gốc: `13nd.signed.pdf`; OCR chuẩn: `starter/data/nghi_dinh_13_2023_ND-CP_ocr.json`.
+- Manifest: `data/manifest.json` — 39 trang nội dung, 66.956 ký tự sau chuẩn hóa.
+- Model: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`, 384 chiều, CPU, cosine, chi phí API 0 USD.
+- Store: PostgreSQL 16 + pgvector 0.8.7, cổng local `127.0.0.1:55433`.
+- Benchmark: `benchmark/questions.json` — 15 dev + 5 test, 7 câu có filter.
+- Code: `starter/src/`; output: `results/`; audit: `results/manual_audit.json`; báo cáo: `report/individual/MSSV_HoTen.md`.
 
-![Đọc tài liệu, chuẩn hóa, chia chunk, tạo vector, lưu và kiểm tra](assets/ingestion-pipeline.svg)
+## Chạy trên VS Code / Windows PowerShell
 
-Chọn tài liệu được phép sử dụng; giữ **ID tài liệu, nguồn, trang/vị trí** và metadata phù hợp. Dùng embedding model thật qua API hoặc chạy local; lưu và truy xuất bằng pgvector, Qdrant, Chroma hoặc một store tương đương.
+Yêu cầu: Python 3.11+, Docker Desktop và mạng ở lần cài/tải model đầu tiên. Mở thư mục này trong VS Code, chọn **Terminal → New Terminal**, rồi chạy:
 
-## 2. So sánh và đánh giá
+```powershell
+cd starter
+python -m venv .venv
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env -ErrorAction SilentlyContinue
+docker compose -p day6_student_starter up -d --wait
+python scripts\check_setup.py
+python scripts\check_embeddings.py
+python -m src.run
+```
 
-![Ba chiến lược được đánh giá trên cùng corpus và benchmark dev/test](assets/benchmark-workflow.svg)
+Lần đầu `check_embeddings.py` tải model từ Hugging Face. Nếu model đã có trong cache nhưng máy đang offline, dùng:
 
-Dùng cùng dữ liệu, model và câu hỏi cho cả ba cấu hình. Tách **15 câu dev / 5 câu test** trước khi chạy; chọn cấu hình trên dev, rồi đánh giá test sau khi cố định. Mỗi câu hỏi cần có đoạn bằng chứng và trang nguồn; thiết kế bộ câu hỏi và đánh giá theo [BENCHMARK.md](BENCHMARK.md).
+```powershell
+$env:HF_HUB_OFFLINE="1"
+python -m src.run
+```
 
-Đánh giá theo năm khía cạnh: **độ chính xác truy xuất**, **tính mạch lạc của chunk**, **tính hữu dụng của metadata**, **chất lượng grounding** và **tác động của chiến lược dữ liệu**. Giải thích lựa chọn bằng kết quả, ví dụ lỗi và các đánh đổi.
+`src.run` thực hiện đọc/kiểm tra OCR, tạo chunk A và B, embed thật, replace ba strategy trong database, chạy dev trước, cố định lựa chọn, chạy test và ghi artifacts vào thư mục `results/` ở root. Nạp lại không nhân đôi: sau lần chạy đã kiểm tra số row A/B/C lần lượt là 163/103/103.
 
-## 3. Chuẩn bị bài nộp
+Dừng database nhưng giữ volume:
 
-1. Chạy pipeline và lưu cấu hình, kết quả top-3, trace cùng nhãn đánh giá thủ công.
-2. Điền [thông tin học viên](STUDENT.md), [nhật ký thí nghiệm](artifacts/experiment_log.csv) và bản sao [mẫu báo cáo cá nhân](report/individual/MSSV_HoTen.md).
-3. Kiểm tra mã nguồn, cách chạy, manifest dữ liệu và checklist trong [SUBMISSION.md](SUBMISSION.md).
+```powershell
+docker compose -p day6_student_starter stop
+```
 
-## Tài liệu hướng dẫn
+## Kiểm tra output
 
-| Bạn cần tìm | Tài liệu |
-|---|---|
-| Setup baseline PostgreSQL + pgvector | [starter/README.md](starter/README.md) |
-| Các bước làm và cách tính chỉ số | [GUIDE.md](GUIDE.md) |
-| Tiến độ trong 4 giờ | [CHECKPOINTS.md](CHECKPOINTS.md) |
-| Năm tiêu chí benchmark và bộ câu hỏi | [BENCHMARK.md](BENCHMARK.md) |
-| Tiêu chí chấm điểm | [RUBRIC.md](RUBRIC.md) |
-| Quy tắc sử dụng dữ liệu, AI và API | [RULES.md](RULES.md) |
-| Cách nộp bài | [SUBMISSION.md](SUBMISSION.md) |
+- `results/run_config.json`: model, store, tham số và quy tắc chọn.
+- `results/ingestion_stats.json`: số chunk, kích thước, thời gian và count sau replace.
+- `results/metrics.json`: Hit@1 và Evidence Hit@3 dev/test.
+- `results/traces_A.json`, `traces_B.json`, `traces_C.json`: query, gold, top-3, score và metadata.
+- `results/manual_audit.json`: coherence, metadata, filter compliance và grounding với nhãn/lý do.
+- `results/error_log.txt`: OCR và lỗi kỹ thuật đã gặp, không che giấu fallback.
 
-[data/format-example.json](data/format-example.json) chỉ minh họa định dạng, không phải corpus đủ điều kiện. Phần xử lý và benchmark do bạn tự hiện thực; không bắt buộc xây chatbot.
+## Lưu ý trước khi nộp
+
+Điền họ tên, MSSV, lớp, repo và commit trong `STUDENT.md`; đổi tên báo cáo thành `<MSSV>_<HoTen>.md`; tự đọc lại nhãn audit vì Codex là người hỗ trợ triển khai và chấm mẫu, không phải evaluator độc lập. Không commit `.env`, `.venv` hay cache model. Tài liệu là snapshot phục vụ retrieval, không phải tư vấn hoặc kiểm tra hiệu lực pháp luật hiện hành.

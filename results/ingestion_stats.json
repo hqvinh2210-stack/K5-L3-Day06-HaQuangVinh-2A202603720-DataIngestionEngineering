@@ -1,0 +1,39 @@
+{
+  "source_characters": 66956,
+  "A": {
+    "chunk_count": 163,
+    "total_characters_with_overlap": 73098,
+    "approx_tokens": 18274,
+    "min_characters": 61,
+    "median_characters": 500,
+    "mean_characters": 448.4539877300613,
+    "max_characters": 500,
+    "ingest_seconds": 10.965061400002014
+  },
+  "B": {
+    "chunk_count": 103,
+    "total_characters_with_overlap": 66834,
+    "approx_tokens": 16708,
+    "min_characters": 51,
+    "median_characters": 765,
+    "mean_characters": 648.8737864077669,
+    "max_characters": 898,
+    "ingest_seconds": 6.731931700000132
+  },
+  "C": {
+    "chunk_count": 103,
+    "total_characters_with_overlap": 66834,
+    "approx_tokens": 16708,
+    "min_characters": 51,
+    "median_characters": 765,
+    "mean_characters": 648.8737864077669,
+    "max_characters": 898,
+    "ingest_seconds": 0.15852580000137095,
+    "embeddings_reused_from_B": true
+  },
+  "stored_counts_after_replace": {
+    "A": 163,
+    "B": 103,
+    "C": 103
+  }
+}

@@ -1,0 +1,6 @@
+2026-11-13 - The source PDF is image-based, so direct PDF text extraction was not used. The canonical input is the 39-page ChatGPT OCR JSON.
+2026-11-13 - OCR contains three explicit unreadable/noise markers. Pages 1, 35, 37 and 39 require manual visual review; none of the benchmark gold passages uses an unreadable span.
+2026-11-13 - An exploratory local EasyOCR run was stopped after page 15 when the canonical ChatGPT OCR became available. starter/data/ocr_text is partial and is not consumed by src.run.
+2026-11-13 - The first pgvector Docker image pull was slow but completed; PostgreSQL 16.16 and pgvector 0.8.7 passed scripts/check_setup.py.
+2026-11-13 - The first pipeline attempt exposed psycopg 3 Connection.executemany incompatibility. Store insertion was corrected to Cursor.executemany and the full run completed.
+2026-11-13 - Hugging Face network checks were blocked inside the sandbox. The already-cached real model was loaded with HF_HUB_OFFLINE=1; no random/fallback vectors were used.

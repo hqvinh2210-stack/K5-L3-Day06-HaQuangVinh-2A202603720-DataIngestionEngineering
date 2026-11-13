@@ -1,4 +1,4 @@
 strategy,chunking,chunk_size,overlap,metadata,filter,vectorizer,hypothesis,dev_hit1,dev_hit3,test_hit1,test_hit3,notes
-A,,,,,,,,,,,,
-B,,,,,,,,,,,,
-C,,,,,,,,,,,,
+A,fixed characters,500,50,"source;physical page;printed_page;section;year;document_type;language;OCR source",none,paraphrase-multilingual-MiniLM-L12-v2 384d,"Simple baseline; overlap may recover boundary evidence but creates more chunks",2/15,6/15,1/5,2/5,"163 chunks; 10.965 s; exact cosine"
+B,paragraph-aware,900,0,"same as A",none,paraphrase-multilingual-MiniLM-L12-v2 384d,"Paragraph boundaries should improve coherence and evidence containment",9/15,12/15,2/5,3/5,"103 chunks; 6.732 s; selected on dev by precommitted rule"
+C,"same chunks and vectors as B",900,0,"same as B",section when supplied,paraphrase-multilingual-MiniLM-L12-v2 384d,"A trusted chapter filter should reduce cross-section false positives",9/15,12/15,3/5,5/5,"103 chunks; 0.159 s reuse/store; filter changes only retrieval"

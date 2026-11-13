@@ -1,8 +1,8 @@
 # Thông tin học viên
 
-- Họ và tên:
-- MSSV:
-- Lớp: L3A / L3B / khác:
-- Chủ đề và corpus:
-- Repo bài nộp:
-- Commit chốt bài:
+- Họ và tên: Hà Quang Vinh
+- MSSV: 2A202603720
+- Lớp: L3A
+- Chủ đề và corpus: Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân, 39 trang scan/OCR
+- Repo bài nộp: https://github.com/hqvinh2210-stack/K5-L3-Day06-2A202603720-DataIngestionEngineering
+- Commit chốt bài: commit mới nhất trên nhánh `main`, nội dung `lab 06`

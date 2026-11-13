@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "nd13_2023",
+    "title": "Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân",
+    "source_path_or_url": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2023/4/13nd.signed.pdf",
+    "local_source_path": "13nd.signed.pdf",
+    "ocr_path": "starter/data/nghi_dinh_13_2023_ND-CP_ocr.json",
+    "license_or_permission": "Văn bản pháp luật công khai từ Cổng Thông tin điện tử Chính phủ; sử dụng bản OCR cho mục đích học tập và đánh giá nội bộ.",
+    "accessed_at": "2026-11-13",
+    "snapshot": "Nghị định ký ngày 17/04/2023",
+    "physical_page_count": 39,
+    "content_page_count": 39,
+    "content_pages": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39],
+    "normalized_character_count": 66956,
+    "page_count_rule": "Tính toàn bộ 39 trang có nội dung pháp lý hoặc biểu mẫu phụ lục; không có trang trống.",
+    "ocr": {
+      "provider": "ChatGPT file OCR supplied by student",
+      "unreadable_markers": 3,
+      "manual_review_required": [1, 35, 37, 39]
+    }
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "corpus": "C:\\Users\\admin\\Downloads\\lab06\\starter\\data\\nghi_dinh_13_2023_ND-CP_ocr.json",
+  "content_pages": 39,
+  "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "embedding_dimensions": 384,
+  "device": "cpu",
+  "vector_store": "PostgreSQL 16 + pgvector 0.8.7",
+  "distance": "cosine",
+  "strategies": {
+    "A": {
+      "chunking": "fixed characters",
+      "size": 500,
+      "overlap": 50,
+      "filter": false
+    },
+    "B": {
+      "chunking": "paragraph-aware",
+      "max_size": 900,
+      "filter": false
+    },
+    "C": {
+      "chunking": "same vectors as B",
+      "max_size": 900,
+      "filter": "section when provided"
+    }
+  },
+  "selection_rule": "Highest dev Evidence Hit@3, then dev Hit@1, then fewer chunks, then fixed A-B-C order",
+  "selected_on_dev": "B",
+  "api_cost_usd": 0
+}

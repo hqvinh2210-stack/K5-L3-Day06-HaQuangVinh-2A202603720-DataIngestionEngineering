@@ -1,5 +1,7 @@
-"""Choose a real embedding provider (API or local) and implement this contract."""
+"""Local multilingual embeddings used by the ingestion pipeline."""
 from typing import Protocol
+
+from sentence_transformers import SentenceTransformer
 
 
 class Embedder(Protocol):
@@ -16,14 +18,56 @@ class Embedder(Protocol):
 
 
 class MyEmbedder:
-    """TODO: implement a provider adapter; do not silently fall back to mock vectors."""
+    """Embed Vietnamese and multilingual text with a local MiniLM model.
 
-    def __init__(self, model_name: str) -> None:
+    The model is downloaded from Hugging Face on first use and then loaded from
+    the local cache. Document and query vectors are L2-normalized so cosine
+    similarity can be used consistently by pgvector.
+    """
+
+    DEFAULT_MODEL = (
+        "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    )
+
+    def __init__(
+        self,
+        model_name: str = DEFAULT_MODEL,
+        device: str | None = None,
+        batch_size: int = 16,
+    ) -> None:
         self.model_name = model_name
-        raise NotImplementedError("TODO: initialize real embedder and dimensions")
+        self.batch_size = batch_size
+        self.model = SentenceTransformer(model_name, device=device)
+
+        dimensions = self.model.get_embedding_dimension()
+        if dimensions is None:
+            raise ValueError(
+                f"Cannot determine embedding dimensions for {model_name}"
+            )
+        self.dimensions = dimensions
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        raise NotImplementedError("TODO: embed_documents")
+        if not texts:
+            return []
+        if any(not text.strip() for text in texts):
+            raise ValueError("Document texts must not be empty")
+
+        vectors = self.model.encode_document(
+            texts,
+            batch_size=self.batch_size,
+            convert_to_numpy=True,
+            normalize_embeddings=True,
+            show_progress_bar=len(texts) >= self.batch_size,
+        )
+        return vectors.tolist()
 
     def embed_query(self, question: str) -> list[float]:
-        raise NotImplementedError("TODO: embed_query")
+        if not question.strip():
+            raise ValueError("Query must not be empty")
+
+        vector = self.model.encode_query(
+            question,
+            convert_to_numpy=True,
+            normalize_embeddings=True,
+        )
+        return vector.tolist()
